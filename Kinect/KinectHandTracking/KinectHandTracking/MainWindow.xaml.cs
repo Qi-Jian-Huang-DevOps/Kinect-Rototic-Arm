@@ -25,8 +25,8 @@ namespace KinectHandTracking
     {
         #region Members
         private SerialPort _serialPort = new SerialPort();
-        private int _baudRate = 9200;
-        private string _portName = SerialPort.GetPortNames()[1];
+        private int _baudRate = 9600;
+        private string _portName = SerialPort.GetPortNames()[0];
 
         KinectSensor _sensor;
         MultiSourceFrameReader _reader;
