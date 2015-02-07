@@ -9,7 +9,7 @@ boolean reverse = false;
 
 void setup() 
 { 
-  Serial.begin(9200);
+  Serial.begin(9600);
 
   // LEDS
   pinMode(LED1, OUTPUT);
@@ -21,58 +21,50 @@ void setup()
 } 
 
 void loop() 
-{ 
+{        
   //initiaize the servos' positions for every loop
-  servo1.write(pos1);
-  servo2.write(pos2);
+  //servo1.write(pos1);
+  //servo2.write(pos2);
 
   if (Serial.available() > 0) {
     int input = Serial.read();
-
-    switch (input) {
-      /*
-       case 0: servo1 off 
-       case 1: servo1 on
-       case 2: servo2 off
-       case 3: servo2 on
-       */
-    case 0: 
-      if (pos1 >= 160) {
-      }
-      else {
-        pos1 += DEG_DIFFERENCE;
-        digitalWrite(LED1, LOW);
-        servo1.write(pos1);
-      }
-      break;
-    case 1: 
-      if (pos1 <= 30) {
-      }
-      else {
-        pos1-= DEG_DIFFERENCE;
-        digitalWrite(LED1, HIGH);
-        servo1.write(pos1);
-      }
-      break;
-    case 2:
-      if (pos2 <= 0) {
-      }
-      else {
-        pos2 -= DEG_DIFFERENCE;
-        digitalWrite(LED2, LOW);
-        servo2.write(pos2);
-      }
-      break;
-    case 3:
-      if (pos2 >= 180) {
-      }
-      else {
-        pos2 += DEG_DIFFERENCE;
-        digitalWrite(LED2, HIGH);
-        servo2.write(pos2);
-      }
-      break;
-    } 
+    
+    if (input >=0 && input <= 20) {
+      servo1.write(15);
+    } else if (input > 20 && input <=40) {
+      servo1.write(30);
+    } else if (input > 40 && input <=60) {
+      servo1.write(45);
+    } else if (input > 60 && input <=80) {
+      servo1.write(60);
+    } else if (input > 80 && input <=100) {
+      servo1.write(75);
+    } else if (input > 100 && input <=120) {
+      servo1.write(90);
+    } else if (input > 120 && input <=140) {
+      servo1.write(105);
+    } else if (input > 140 && input <=160) {
+      servo1.write(120);
+    }
+//    case 0: 
+//      if (pos1 >= 160) {
+//      }
+//      else {
+//        pos1 += DEG_DIFFERENCE;
+//        digitalWrite(LED1, LOW);
+//        servo1.write(pos1);
+//      }
+//      break;
+//    case 1: 
+//      if (pos1 <= 30) {
+//      }
+//      else {
+//        pos1-= DEG_DIFFERENCE;
+//        digitalWrite(LED1, HIGH);
+//        servo1.write(pos1);
+//      }
+//      break;  
+   // } 
   }
 }
 

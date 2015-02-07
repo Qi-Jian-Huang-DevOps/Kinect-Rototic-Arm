@@ -26,7 +26,7 @@ namespace KinectHandTracking
         #region Members
         private SerialPort _serialPort = new SerialPort();
         private int _baudRate = 9600;
-        private string _portName = SerialPort.GetPortNames()[0];
+        private string _portName = SerialPort.GetPortNames()[1];
 
         KinectSensor _sensor;
         MultiSourceFrameReader _reader;
@@ -38,6 +38,7 @@ namespace KinectHandTracking
 
         public MainWindow()
         {
+
             InitializeComponent();
         }
 
@@ -134,6 +135,9 @@ namespace KinectHandTracking
                                 Joint handLeft = body.Joints[JointType.HandLeft];
                                 Joint thumbLeft = body.Joints[JointType.ThumbLeft];
 
+                                Joint jointA = body.Joints[JointType.ThumbRight];
+                                Joint jointB = body.Joints[JointType.HandTipRight];
+
                                 // Draw hands and thumbs
                                 canvas.DrawHand(handRight);
                                 canvas.DrawHand(handLeft);
@@ -147,8 +151,8 @@ namespace KinectHandTracking
                                 switch (body.HandRightState)
                                 {
                                     case HandState.Open:
-                                        rightHandState = "Open (ON)";
-                                        sendByte(1);
+                                        rightHandState = getStringPosX(jointA) + "\n" + getStringPosX(jointB) + "\n" + getClamDis(jointA, jointB);
+                                        sendByte(getByteClamDis(jointA, jointB));
                                         break;
                                     case HandState.Closed:
                                         rightHandState = "Closed (OFF)";
@@ -199,6 +203,37 @@ namespace KinectHandTracking
         }
 
         #endregion
+        // get position coordinate in string format and in mm unit
+        public string getStringPosX(Joint joint)
+        {
+            return Convert.ToString(joint.Position.X * 1000.0);
+        }
+
+        public string getStringPosY(Joint joint)
+        {
+            return Convert.ToString(joint.Position.Y * 1000.0);
+        }
+
+        public string getStringPosZ(Joint joint)
+        {
+            return Convert.ToString(joint.Position.Z * 1000.0);
+        }
+
+        public string getClamDis(Joint jointA, Joint jointB) 
+        {
+            float a, b;
+            a = jointA.Position.X;
+            b = jointB.Position.X;
+            return Convert.ToString(Math.Round(Math.Abs(a - b) * 1000.0));
+        }
+
+        public byte getByteClamDis(Joint jointA, Joint jointB) 
+        {
+            float a, b;
+            a = jointA.Position.X;
+            b = jointB.Position.X;
+            return (byte)(Math.Round(Math.Abs(a - b) * 1000.0));
+        }
 
         public void sendByte(byte dataByte)
         {
