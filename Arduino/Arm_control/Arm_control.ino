@@ -18,6 +18,7 @@ void setup()
   //Servos
   servo1.attach(2);
   servo2.attach(4); 
+  pos1 = servo1.read();
 } 
 
 void loop() 
@@ -28,45 +29,33 @@ void loop()
 
   if (Serial.available() > 0) {
     int input = Serial.read();
-    
-    if (input >=0 && input <= 20) {
-      servo1.write(15);
-    } else if (input > 20 && input <=40) {
-      servo1.write(30);
-    } else if (input > 40 && input <=60) {
-      servo1.write(45);
-    } else if (input > 60 && input <=80) {
-      servo1.write(60);
-    } else if (input > 80 && input <=100) {
-      servo1.write(75);
-    } else if (input > 100 && input <=120) {
-      servo1.write(90);
-    } else if (input > 120 && input <=140) {
-      servo1.write(105);
-    } else if (input > 140 && input <=160) {
-      servo1.write(120);
+
+    if (input > 60) { // opening clam
+      if (pos1 >= 180) { 
+        // doNothing 
+      } 
+      else {
+        pos1 += DEG_DIFFERENCE;
+        servo1.write(pos1);
+      }
     }
-//    case 0: 
-//      if (pos1 >= 160) {
-//      }
-//      else {
-//        pos1 += DEG_DIFFERENCE;
-//        digitalWrite(LED1, LOW);
-//        servo1.write(pos1);
-//      }
-//      break;
-//    case 1: 
-//      if (pos1 <= 30) {
-//      }
-//      else {
-//        pos1-= DEG_DIFFERENCE;
-//        digitalWrite(LED1, HIGH);
-//        servo1.write(pos1);
-//      }
-//      break;  
-   // } 
+    else { // closing clam
+      if (pos1 <= 0) { 
+        // doNothing
+      }
+      else {
+        pos1 -= DEG_DIFFERENCE;
+        servo1.write(pos1);
+      }
+    }
+    Serial.write(pos1); // send current servo position
   }
-}
+} 
+
+
+
+
+
 
 
 

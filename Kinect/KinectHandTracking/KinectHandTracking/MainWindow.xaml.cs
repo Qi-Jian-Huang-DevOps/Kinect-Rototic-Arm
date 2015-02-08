@@ -151,12 +151,16 @@ namespace KinectHandTracking
                                 switch (body.HandRightState)
                                 {
                                     case HandState.Open:
-                                        rightHandState = getStringPosX(jointA) + "\n" + getStringPosX(jointB) + "\n" + getClamDis(jointA, jointB);
-                                        sendByte(getByteClamDis(jointA, jointB));
+                                        rightHandState = getStringPosX(jointA) + "\n" + 
+                                            getStringPosX(jointB) + "\n" + 
+                                            getClamDis(jointA, jointB) + "\nServo: " + 
+                                            getSerialByte();
+
+                                        sendSerialByte(getByteClamDis(jointA, jointB));
                                         break;
                                     case HandState.Closed:
                                         rightHandState = "Closed (OFF)";
-                                        sendByte(0);
+                                        sendSerialByte(0);
                                         break;
                                     case HandState.Lasso:
                                         rightHandState = "Lasso";
@@ -235,10 +239,15 @@ namespace KinectHandTracking
             return (byte)(Math.Round(Math.Abs(a - b) * 1000.0));
         }
 
-        public void sendByte(byte dataByte)
+        public void sendSerialByte(byte dataByte)
         {
             byte[] byteArray = new byte[] { dataByte };
             _serialPort.Write(byteArray, 0, byteArray.Length);
+        }
+
+        public byte getSerialByte()
+        {
+            return (byte)_serialPort.ReadByte();
         }
 
         // Display Port values and prompt user to enter a port. 
