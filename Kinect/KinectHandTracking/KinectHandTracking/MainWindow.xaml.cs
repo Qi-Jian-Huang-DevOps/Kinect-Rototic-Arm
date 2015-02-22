@@ -27,6 +27,18 @@ namespace KinectHandTracking
         private SerialPort _serialPort = new SerialPort();
         private int _baudRate = 9600;
         private string _portName = SerialPort.GetPortNames()[1];
+        // unit of the joint positions 
+        private double UNIT = 100.0;
+
+        private Boolean signalSend = false;
+
+        private static byte BASE = 0;
+        private static byte SHOULDER = 1;
+        private static byte ELBOW = 2;
+        private static byte WRIST = 3;
+        private static byte CLAM = 4;
+
+        private byte baseData, shoulderData, elbowData, wristData, clamData;
 
         KinectSensor _sensor;
         MultiSourceFrameReader _reader;
@@ -126,23 +138,35 @@ namespace KinectHandTracking
                         if (body != null)
                         {
                             if (body.IsTracked)
-                            {                              
-
+                            {
                                 // Find the joints
-                                Joint handRight = body.Joints[JointType.HandRight];
-                                Joint thumbRight = body.Joints[JointType.ThumbRight];
+                                //Joint handRight = body.Joints[JointType.HandRight];
 
                                 Joint handLeft = body.Joints[JointType.HandLeft];
                                 Joint thumbLeft = body.Joints[JointType.ThumbLeft];
 
-                                Joint jointA = body.Joints[JointType.ThumbRight];
-                                Joint jointB = body.Joints[JointType.HandTipRight];
+                                // for clam distance
+                                Joint thumbRight = body.Joints[JointType.ThumbRight];
+                                Joint handTipRight = body.Joints[JointType.HandTipRight];
+
+                                // for arm shoulder
+                                Joint handRight = body.Joints[JointType.HandRight];
+
+                                // for arm base
+                                Joint elbowRight = body.Joints[JointType.ElbowRight];
+                                Joint shoulderRight = body.Joints[JointType.ShoulderRight];
+
+                                // for arm elbow
+                                // need elbow joint and handright joint
+
+                                // for arm wrist
+                                Joint wristRight = body.Joints[JointType.WristRight];
 
                                 // Draw hands and thumbs
-                                canvas.DrawHand(handRight);
-                                canvas.DrawHand(handLeft);
-                                canvas.DrawThumb(thumbRight);
-                                canvas.DrawThumb(thumbLeft);
+                                //canvas.DrawHand(elbowRight);
+                                //canvas.DrawHand(shoulderRight);
+                                canvas.DrawThumb(wristRight);
+                                canvas.DrawThumb(handRight);
 
                                 // Find the hand states
                                 string rightHandState = "-";
@@ -150,28 +174,45 @@ namespace KinectHandTracking
 
                                 switch (body.HandRightState)
                                 {
-                                    case HandState.Open:
-                                        rightHandState = getStringPosX(jointA) + "\n" + 
-                                            getStringPosX(jointB) + "\n" + 
-                                            getClamDis(jointA, jointB) + "\nServo: " + 
-                                            getSerialByte();
-
-                                        sendSerialByte(getByteClamDis(jointA, jointB));
-                                        break;
-                                    case HandState.Closed:
+                                    /*case HandState.Open:                                        
+                                        rightHandState = Convert.ToString(val);
+                                        sendSerialByte(val);
+                                        break;*/
+                                   /* case HandState.Closed:
                                         rightHandState = "Closed (OFF)";
                                         sendSerialByte(0);
-                                        break;
-                                    case HandState.Lasso:
+                                        break;*/
+                                   /* case HandState.Lasso:
                                         rightHandState = "Lasso";
                                         break;
                                     case HandState.Unknown:
                                         rightHandState = "Unknown...";
+                                        rightHandState = Convert.ToString(val);
+                                        sendSerialByte(val);
                                         break;
                                     case HandState.NotTracked:
                                         rightHandState = "Not tracked";
-                                        break;
+                                        break;*/
                                     default:
+                                        baseData = getByteBaseAng(shoulderRight, elbowRight);
+                                        shoulderData = getByteShoulderDis(handRight);
+                                        elbowData = getByteElbowDis(elbowRight, handRight);
+                                        wristData = getByteWristDis(wristRight, handTipRight);
+                                        clamData = getByteClamDis(handTipRight, thumbRight);
+
+                                        /*rightHandState = getStringPosX(elbowRight) + "\n" + 
+                                            getStringPosX(shoulderRight) + "\n" +
+                                            getStringPosZ(elbowRight) + "\n" +
+                                            getStringPosZ(shoulderRight) + "\n" + */
+                                        rightHandState = "Base: " + Convert.ToString(baseData) + "\n" +
+                                            "Shoulder: " + Convert.ToString(shoulderData) + "\n" +
+                                            "Elbow: " + Convert.ToString(elbowData) + "\n" +
+                                            "Wrist: " + Convert.ToString(wristData) + "\n" +
+                                            "Clam: " + Convert.ToString(clamData) + "\n";
+
+                                        //Convert.ToString(getByteShoulderDis(handRight));
+
+                                        sendSerialByteArray(baseData, shoulderData, elbowData, wristData, clamData);
                                         break;
                                 }
 
@@ -179,21 +220,27 @@ namespace KinectHandTracking
                                 {
                                     case HandState.Open:
                                         leftHandState = "Open";
+                                        signalSend = true;
                                         //_serialPort.Write(dataByte, 0, dataByte.Length);
                                         break;
                                     case HandState.Closed:
                                         leftHandState = "Closed";
+                                        signalSend = false;
                                         break;
                                     case HandState.Lasso:
                                         leftHandState = "Lasso";
+                                        signalSend = false;
                                         break;
                                     case HandState.Unknown:
                                         leftHandState = "Unknown...";
+                                        signalSend = false;
                                         break;
                                     case HandState.NotTracked:
                                         leftHandState = "Not tracked";
+                                        signalSend = false;
                                         break;
                                     default:
+                                        signalSend = false;
                                         break;
                                 }
 
@@ -207,42 +254,125 @@ namespace KinectHandTracking
         }
 
         #endregion
-        // get position coordinate in string format and in mm unit
+        // get position coordinate in string format
         public string getStringPosX(Joint joint)
         {
-            return Convert.ToString(joint.Position.X * 1000.0);
+            return Convert.ToString(joint.Position.X * UNIT);
         }
 
         public string getStringPosY(Joint joint)
         {
-            return Convert.ToString(joint.Position.Y * 1000.0);
+            return Convert.ToString(joint.Position.Y * UNIT);
         }
 
-        public string getStringPosZ(Joint joint)
+        public string getStringPosZ(Joint joint)  
         {
-            return Convert.ToString(joint.Position.Z * 1000.0);
+            return Convert.ToString(joint.Position.Z * UNIT);
         }
 
-        public string getClamDis(Joint jointA, Joint jointB) 
-        {
-            float a, b;
-            a = jointA.Position.X;
-            b = jointB.Position.X;
-            return Convert.ToString(Math.Round(Math.Abs(a - b) * 1000.0));
-        }
-
+        // need hand and thumb joints
         public byte getByteClamDis(Joint jointA, Joint jointB) 
         {
-            float a, b;
-            a = jointA.Position.X;
-            b = jointB.Position.X;
-            return (byte)(Math.Round(Math.Abs(a - b) * 1000.0));
+            float a_x, a_y, a_z, b_x, b_y, b_z;
+            byte dis = 0;
+            a_x = jointA.Position.X;
+            a_y = jointA.Position.Y;
+            a_z = jointA.Position.Z;
+            b_x = jointB.Position.X;
+            b_y = jointB.Position.Y;
+            b_z = jointB.Position.Z;
+            //return (byte)(Math.Round(Math.Abs(a - b) * 1000.0));
+            dis = (byte) (Math.Sqrt(Math.Pow(a_x - b_x, 2) + 
+                Math.Pow(a_y - b_y, 2) +
+                Math.Pow(a_z - b_z, 2)) * UNIT);
+            return dis;    
+        }
+
+        // need hand joint
+        public byte getByteShoulderDis(Joint joint)
+        {
+            float dis =0;
+            dis = joint.Position.Y;
+
+            return (byte)(dis * UNIT);
+        }
+
+        // need shoulder and elbow joints
+        public byte getByteBaseAng(Joint jointA, Joint jointB)
+        {
+            float x_val, z_val;
+            double angle = 0; // in degree
+
+            x_val = (jointA.Position.X - jointB.Position.X);
+            z_val = (jointA.Position.Z - jointB.Position.Z);
+            angle = Math.Atan((z_val / x_val)) * (float)(180 / Math.PI);
+            // angle only goes from 0 - 90 degree
+            angle = Math.Abs(angle);
+
+            if (jointA.Position.X < jointB.Position.X)
+            { 
+                // if shoulder x position is smaller than elbow x position
+                // convert it to 90 - 180 degree
+                angle = angle + (90 - angle) * 2.0;
+            }
+            else
+            {
+                // 0 - 90 degree
+            }
+            
+            return (byte)angle;
+        }
+
+        // need elbow and hand joints
+        public byte getByteElbowDis(Joint jointA, Joint jointB)
+        {
+            float a_val, b_val;
+            double dis = 0;
+            a_val = jointA.Position.Y;
+            b_val = jointB.Position.Y;
+
+            // (a_val - b_val) * UNIT = distance is about -30 -> 30 cm
+            // hence, this will gives 
+            dis = Math.Abs((b_val - a_val) * UNIT + 30);
+
+            return (byte)dis;
+        }
+
+        // need wrist and hand joints
+        public byte getByteWristDis(Joint jointA, Joint jointB)
+        {
+            float a_val, b_val;
+            double dis = 0;
+            a_val = jointA.Position.Y;
+            b_val = jointB.Position.Y;
+
+            // (a_val - b_val) * UNIT = distance is about -30 -> 30 cm
+            // hence, this will gives 
+            //dis = Math.Abs((b_val - a_val) * UNIT + 30);
+            dis = Math.Abs((b_val - a_val) * UNIT);
+
+            return (byte)dis;
         }
 
         public void sendSerialByte(byte dataByte)
         {
             byte[] byteArray = new byte[] { dataByte };
             _serialPort.Write(byteArray, 0, byteArray.Length);
+        }
+
+        public void sendSerialByteArray(byte baseData, byte shoulderData, byte elbowData, byte wristData, byte clamData)
+        {
+            byte[] byteArray = new byte[] { baseData, shoulderData, elbowData, wristData, clamData };
+
+            if (signalSend)
+            {
+                _serialPort.Write(byteArray, 0, byteArray.Length);
+            }
+            else
+            {
+                // do nothing
+            }
+            
         }
 
         public byte getSerialByte()
