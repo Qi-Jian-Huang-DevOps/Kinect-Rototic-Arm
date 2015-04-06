@@ -5,20 +5,20 @@
     <Grid>
         <Image Name="camera" />
         <Canvas Name="canvas" />
-        <Grid Style="{StaticResource ContainerStyle}">
+        <Grid Background="LightGreen" Style="{StaticResource ContainerStyle}">
             <StackPanel Margin="20">
                 <StackPanel>
-                    <TextBlock Text="         4OI6 DEMO 1" Style="{StaticResource TitleStyle}" />
-                    <TextBlock Name="tblTitle" Text="    Kinect Robotic Arm" Style="{StaticResource TitleStyle}" />
+                    <TextBlock Text="4OI6 DEMO 2" HorizontalAlignment="Center" FontWeight="Bold" Foreground="Black" Style="{StaticResource TitleStyle}" />
+                    <TextBlock Name="tblTitle" Text="Kinect Robotic Arm" HorizontalAlignment="Center" FontWeight="Bold" Foreground="Black" Style="{StaticResource TitleStyle}" />
                     <TextBlock Text="" Style="{StaticResource TitleStyle}" />
                 </StackPanel>
                 <StackPanel>
-                    <TextBlock Text="Right hand state:" Style="{StaticResource TitleStyle}" />
-                    <TextBlock Name="tblRightHandState" Text="-" Style="{StaticResource StateStyle}" />
+                    <TextBlock Text="Right hand states:" Foreground="Black" Style="{StaticResource TitleStyle}" />
+                    <TextBlock Name="tblRightHandState" Text="-" Foreground="Black" Style="{StaticResource StateStyle}" />
                 </StackPanel>
-                <StackPanel Margin="0,50,0,0">
-                    <TextBlock Text="Left hand state:" Style="{StaticResource TitleStyle}" />
-                    <TextBlock Name="tblLeftHandState" Text="-" Style="{StaticResource StateStyle}" />
+                <StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="Left hand state:" Foreground="Black" Style="{StaticResource TitleStyle}" />
+                    <TextBlock Name="tblLeftHandState" Text="-" Foreground="Red" Style="{StaticResource StateStyle}" />
                 </StackPanel>
             </StackPanel>
         </Grid>
